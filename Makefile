@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
-LDFLAGS = -lconfuse
+LDFLAGS = -lconfuse -lpthread
 
 TARGET = servidor
 

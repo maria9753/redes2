@@ -2,9 +2,39 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #include "socket_utils.h"
 #include "config_parser.h"
+#include "http_parser.h"
+
+typedef struct {
+    int clientfd;
+    server_config *config;
+} thread_args;
+
+void *wrapper_handle_response(void *ptr) {
+    thread_args *args = (thread_args *)ptr;
+    char buffer[2048];
+
+    // Recibir petición
+    int bytes_read = recv(args->clientfd, buffer, sizeof(buffer) -1, 0);
+    if (bytes_read > 0) {
+        buffer[bytes_read] = '\0';
+        http_request request;
+
+        // Parsear y responder
+        if (parse_request(buffer, bytes_read, &request) == 0) {
+            handle_response(args->clientfd, &request, args->config);
+        }
+    }
+
+    // Limpiar y cerrar
+    close(args->clientfd);
+    free(args);
+    pthread_detach(pthread_self());
+    return NULL;
+}
 
 int main(void) {
     server_config config;
@@ -31,11 +61,18 @@ int main(void) {
         clientfd = accept(sockfd, (struct sockaddr*)&client_addr, &addrlen);
         printf("Cliente conectado desde %s\n", inet_ntoa(client_addr.sin_addr));
 
-        // Esto para probarlo luego
-        char *msg = "HTTP/1.1 200 OK\r\n\r\nHola caracola";
-        send(clientfd, msg, 45, 0);
+        if (client > 0) {
+            thread_args *args = malloc(sizeof(thread_args));
+            args->clientfd = clientfd;
+            args->config = &config;
 
-        close(clientfd);
+            pthread_t thread_id;
+            if (pthread_create(&thread_id, NULL, wrapper_handle_response, (void *)args) != 0) {
+                perror("Error al crear un hilo");
+                close(clientfd);
+                free(args);
+            }
+        }
     }
 
     return 0;
