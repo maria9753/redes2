@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int parse_request(char *buffer, int buflen, http_request *request) {
+int parse_request(const char *buffer, int buflen, http_request *request) {
     const char *method, *path;
     size_t method_len, path_len;
     int minor_version;
