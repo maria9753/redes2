@@ -4,8 +4,8 @@
 #include "config_parser.h"
 
 int load_config(const char *file, server_config *config) {
-    cfg_opt_t opts[] = {
-        CFG_STR("server_root", "html/", CFGF_NONE),
+    cfg_opt_t options[] = {
+        CFG_STR("server_root", "htmlfiles/", CFGF_NONE),
         CFG_INT("max_clients", 10, CFGF_NONE),
         CFG_INT("listen_port", 8080, CFGF_NONE),
         CFG_STR("server_signature", "Servidor Redes 2", CFGF_NONE),
@@ -13,9 +13,9 @@ int load_config(const char *file, server_config *config) {
     };
 
     cfg_t *cfg;
-    cfg = cfg_init(opts, CFGF_NONE);
+    cfg = cfg_init(options, CFGF_NONE);
 
-    if (cfg_parse(cfg, archivo) == CFG_FILE_ERROR) {
+    if (cfg_parse(cfg, file) == CFG_PARSE_ERROR) {
         perror("Error al abrir server.conf");
         return -1;
     }

@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 // Función para inicializar el socket del servidor
-int init_server(int port) {
+int init_server(server_config *config) {
     int sockfd;
     struct sockaddr_in self;
 
@@ -28,7 +28,7 @@ int init_server(int port) {
     // En ejemplo usan bzero pero resulta que está obsoleta
     memset(&self, 0, sizeof(self));
     self.sin_family = AF_INET;
-    self.sin_port = htons(port);
+    self.sin_port = htons(config->listen_port);
     self.sin_addr.s_addr = INADDR_ANY;
 
     // Ligar el puerto al socket
@@ -38,7 +38,7 @@ int init_server(int port) {
     }
 
     // Escuchar
-    if (listen(sockfd, 10) != 0) {
+    if (listen(sockfd, config->max_clients) != 0) {
         perror("Error escuchando");
         return -1;
     }
